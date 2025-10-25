@@ -1,24 +1,57 @@
 "use client";
 
+import { type AuthError, signInWithEmailAndPassword } from "firebase/auth";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import type React from "react";
 import { useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { auth } from "@/lib/firebase";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
     setIsLoading(true);
     setError(null);
+
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      toast("Signed In!", {
+        description: "Welcome back.",
+      });
+      router.push("/pricing");
+    } catch (e) {
+      const error = e as AuthError;
+
+      let errorMessage = "An unknown error occurred.";
+      switch (error.code) {
+        case "auth/user-not-found":
+        case "auth/wrong-password":
+        case "auth/invalid-credential":
+          errorMessage = "Invalid email or password.";
+          break;
+        case "auth/invalid-email":
+          errorMessage = "The email address is not valid.";
+          break;
+        default:
+          errorMessage = "Failed to sign in. Please try again.";
+          break;
+      }
+      setError(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -39,6 +72,7 @@ export default function LoginPage() {
                   </Label>
                   <Input
                     className="bg-background border-border"
+                    disabled={isLoading}
                     id="email"
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="you@example.com"
@@ -54,6 +88,7 @@ export default function LoginPage() {
                   </Label>
                   <Input
                     className="bg-background border-border"
+                    disabled={isLoading}
                     id="password"
                     onChange={(e) => setPassword(e.target.value)}
                     required
