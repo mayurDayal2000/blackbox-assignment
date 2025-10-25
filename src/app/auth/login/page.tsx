@@ -24,7 +24,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (!authLoading && user) {
-      router.push("/pricing");
+      router.push("/dashboard");
     }
   }, [user, authLoading, router]);
 
@@ -39,7 +39,7 @@ export default function LoginPage() {
       toast("Signed In!", {
         description: "Welcome back.",
       });
-      router.push("/pricing");
+      router.push("/dashboard");
     } catch (e) {
       const error = e as AuthError;
 

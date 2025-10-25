@@ -51,7 +51,7 @@ export default function SignUpPage() {
         description: "You have been successfully signed up.",
       });
 
-      router.push("/pricing");
+      router.push("/dashboard");
     } catch (err) {
       const error = err as AuthError;
       const errMsg =
