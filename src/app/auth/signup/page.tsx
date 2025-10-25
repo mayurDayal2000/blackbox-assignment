@@ -1,12 +1,15 @@
 "use client";
 
+import { type AuthError, createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { auth } from "@/lib/firebase";
 
 export default function SignUpPage() {
   const [email, setEmail] = useState("");
@@ -15,6 +18,7 @@ export default function SignUpPage() {
   const [fullName, setFullName] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,10 +38,30 @@ export default function SignUpPage() {
       return;
     }
 
-    toast.success("Account Created!", {
-      description:
-        "We have sent a confirmation link to your email address. Click the link to verify your account",
-    });
+    try {
+      await createUserWithEmailAndPassword(auth, email, password);
+
+      if (auth.currentUser) {
+        await updateProfile(auth.currentUser, {
+          displayName: fullName,
+        });
+      }
+
+      toast("Account Created!", {
+        description: "You have been successfully signed up.",
+      });
+
+      router.push("/pricing");
+    } catch (err) {
+      const error = err as AuthError;
+      const errMsg =
+        error.code === "auth/email-already-in-use"
+          ? "This email address is already in use."
+          : error.message;
+      setError(errMsg);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -58,6 +82,7 @@ export default function SignUpPage() {
                   </Label>
                   <Input
                     className="bg-background border-border"
+                    disabled={isLoading}
                     id="fullName"
                     onChange={(e) => setFullName(e.target.value)}
                     placeholder="Robert"
@@ -73,6 +98,7 @@ export default function SignUpPage() {
                   </Label>
                   <Input
                     className="bg-background border-border"
+                    disabled={isLoading}
                     id="email"
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="robert@gmail.com"
@@ -88,6 +114,7 @@ export default function SignUpPage() {
                   </Label>
                   <Input
                     className="bg-background border-border"
+                    disabled={isLoading}
                     id="password"
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="At least 8 characters"
@@ -103,6 +130,7 @@ export default function SignUpPage() {
                   </Label>
                   <Input
                     className="bg-background border-border"
+                    disabled={isLoading}
                     id="repeat-password"
                     onChange={(e) => setRepeatPassword(e.target.value)}
                     required
