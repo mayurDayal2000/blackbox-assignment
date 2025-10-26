@@ -14,8 +14,9 @@ export default function Dashboard() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
 
-  const { formData, selectedPlan, isSubmitting, handleInputChange, handleSubmit, setSelectedPlan } =
-    useCheckoutForm(user?.displayName || "");
+  const { formData, selectedPlan, handleInputChange, setSelectedPlan } = useCheckoutForm(
+    user?.displayName || ""
+  );
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -23,7 +24,6 @@ export default function Dashboard() {
     }
   }, [user, authLoading, router]);
 
-  // Handler for the logout process
   const handleLogout = async () => {
     try {
       await signOut(auth);
@@ -57,15 +57,13 @@ export default function Dashboard() {
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="max-w-7xl mx-auto px-6 md:px-10 py-10">
         <CheckoutPlan
           formData={formData}
-          isSubmitting={isSubmitting}
           onInputChange={handleInputChange}
           onPlanSelect={setSelectedPlan}
-          onSubmit={handleSubmit}
           selectedPlan={selectedPlan}
+          user={{ email: user.email || "", uid: user.uid }}
         />
       </main>
     </div>
